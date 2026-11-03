@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+
+{% block title %}Sign In | CareerConnect{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card p-4 shadow-sm border-0">
+                <div class="text-center mb-4">
+                    <span class="p-3 bg-primary bg-opacity-10 text-primary rounded-circle d-inline-flex mb-2">
+                        <i class="bi bi-box-arrow-in-right fs-3"></i>
+                    </span>
+                    <h3 class="fw-bold mb-1">Welcome Back</h3>
+                    <p class="text-muted small">Sign in to your CareerConnect account</p>
+                </div>
+
+                <form method="post" novalidate>
+                    {% csrf_token %}
+
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger small">
+                            {% for error in form.non_field_errors %}
+                                <div>{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Username</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light text-muted"><i class="bi bi-person"></i></span>
+                            <input type="text" name="username" class="form-control" placeholder="Enter your username" required autofocus>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <label class="form-label small fw-semibold mb-0">Password</label>
+                            <a href="{% url 'accounts:password_reset' %}" class="small text-muted text-decoration-none">Forgot password?</a>
+                        </div>
+                        <div class="input-group mt-1">
+                            <span class="input-group-text bg-light text-muted"><i class="bi bi-lock"></i></span>
+                            <input type="password" name="password" class="form-control" placeholder="Enter your password" required>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100 py-2 rounded-pill fw-semibold shadow-sm mb-3">
+                        Sign In
+                    </button>
+
+                    <div class="text-center small text-muted">
+                        Don't have an account? <a href="{% url 'accounts:register_choice' %}" class="text-primary fw-semibold text-decoration-none">Register here</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

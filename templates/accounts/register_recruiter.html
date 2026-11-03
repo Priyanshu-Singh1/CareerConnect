@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+
+{% block title %}Recruiter Registration | CareerConnect{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-7">
+            <div class="card p-4 shadow-sm border-0">
+                <div class="text-center mb-4">
+                    <span class="p-3 bg-success bg-opacity-10 text-success rounded-circle d-inline-flex mb-2">
+                        <i class="bi bi-building fs-3"></i>
+                    </span>
+                    <h3 class="fw-bold mb-1">Create Recruiter Account</h3>
+                    <p class="text-muted small">Connect with qualified candidates and build your dream team</p>
+                </div>
+
+                <form method="post" novalidate>
+                    {% csrf_token %}
+
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger small">
+                            {% for error in form.non_field_errors %}
+                                <div>{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <h6 class="fw-bold text-primary mb-3"><i class="bi bi-person me-1"></i> Personal Credentials</h6>
+                    <div class="row g-2 mb-3">
+                        <div class="col-sm-6">
+                            <label class="form-label small fw-semibold">First Name</label>
+                            {{ form.first_name }}
+                            {% if form.first_name.errors %}<div class="text-danger small mt-1">{{ form.first_name.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label small fw-semibold">Last Name</label>
+                            {{ form.last_name }}
+                            {% if form.last_name.errors %}<div class="text-danger small mt-1">{{ form.last_name.errors.0 }}</div>{% endif %}
+                        </div>
+                    </div>
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-sm-6">
+                            <label class="form-label small fw-semibold">Username</label>
+                            {{ form.username }}
+                            {% if form.username.errors %}<div class="text-danger small mt-1">{{ form.username.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label small fw-semibold">Work Email</label>
+                            {{ form.email }}
+                            {% if form.email.errors %}<div class="text-danger small mt-1">{{ form.email.errors.0 }}</div>{% endif %}
+                        </div>
+                    </div>
+
+                    <div class="row g-2 mb-4">
+                        <div class="col-sm-6">
+                            <label class="form-label small fw-semibold">Password</label>
+                            {{ form.password }}
+                            {% if form.password.errors %}<div class="text-danger small mt-1">{{ form.password.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label small fw-semibold">Confirm Password</label>
+                            {{ form.confirm_password }}
+                            {% if form.confirm_password.errors %}<div class="text-danger small mt-1">{{ form.confirm_password.errors.0 }}</div>{% endif %}
+                        </div>
+                    </div>
+
+                    <h6 class="fw-bold text-success mb-3"><i class="bi bi-building me-1"></i> Company & Role Information</h6>
+                    <div class="row g-2 mb-3">
+                        <div class="col-sm-6">
+                            <label class="form-label small fw-semibold">Your Designation</label>
+                            {{ form.designation }}
+                            {% if form.designation.errors %}<div class="text-danger small mt-1">{{ form.designation.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label small fw-semibold">Phone Number</label>
+                            {{ form.phone }}
+                            {% if form.phone.errors %}<div class="text-danger small mt-1">{{ form.phone.errors.0 }}</div>{% endif %}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Select Existing Company</label>
+                        {{ form.company }}
+                        {% if form.company.errors %}<div class="text-danger small mt-1">{{ form.company.errors.0 }}</div>{% endif %}
+                    </div>
+
+                    <div class="p-3 bg-light rounded-3 mb-4">
+                        <label class="form-label small fw-semibold text-muted text-uppercase mb-2">Or Register a New Company Profile</label>
+                        <div class="mb-2">
+                            {{ form.new_company_name }}
+                        </div>
+                        <div class="row g-2">
+                            <div class="col-sm-6">
+                                {{ form.new_company_industry }}
+                            </div>
+                            <div class="col-sm-6">
+                                {{ form.new_company_location }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-success w-100 py-2 rounded-pill fw-semibold shadow-sm mb-3">
+                        Register Recruiter Account
+                    </button>
+
+                    <div class="text-center small text-muted">
+                        Already registered? <a href="{% url 'accounts:login' %}" class="text-success fw-semibold text-decoration-none">Sign In</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

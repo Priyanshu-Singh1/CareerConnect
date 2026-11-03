@@ -1,0 +1,143 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage Applicants | CareerConnect{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <h3 class="fw-bold mb-1"><i class="bi bi-people text-primary me-2"></i>Applicant Review</h3>
+            <p class="text-muted small mb-0">Evaluate candidates, review resumes, match skills, and update hiring statuses.</p>
+        </div>
+        {% if selected_job %}
+            <a href="{% url 'applications:recruiter_pipeline' job_id=selected_job.id %}" class="btn btn-outline-primary btn-sm rounded-pill">
+                <i class="bi bi-kanban me-1"></i> Switch to Pipeline View
+            </a>
+        {% endif %}
+    </div>
+
+    <!-- Filter Bar Card -->
+    <div class="card p-3 shadow-sm border mb-4 bg-white">
+        <form method="get" class="row g-2 align-items-center">
+            <div class="col-md-5">
+                <label class="form-label small fw-semibold text-muted mb-1">Filter by Job Opening</label>
+                <select name="job_id" class="form-select form-select-sm" onchange="window.location.href=this.value ? '/applications/manage/' + this.value + '/' : '/applications/manage/'">
+                    <option value="">-- All Job Openings --</option>
+                    {% for job in recruiter_jobs %}
+                        <option value="{{ job.id }}" {% if selected_job and selected_job.id == job.id %}selected{% endif %}>
+                            {{ job.title }} ({{ job.applications.count }} applicants)
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label small fw-semibold text-muted mb-1">Filter by Hiring Stage</label>
+                <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
+                    <option value="all">All Stages</option>
+                    {% for val, label in status_choices %}
+                        <option value="{{ val }}" {% if current_status == val %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3 text-md-end mt-md-4">
+                <span class="badge bg-primary fs-6 px-3 py-2">{{ applicant_data|length }} Candidate{{ applicant_data|length|pluralize }}</span>
+            </div>
+        </form>
+    </div>
+
+    <!-- Applicant Cards / Table -->
+    {% if applicant_data %}
+        <div class="d-flex flex-column gap-3">
+            {% for item in applicant_data %}
+                {% with app=item.application cand=item.application.candidate prof=item.application.candidate.candidate_profile %}
+                    <div class="card p-3 shadow-sm border">
+                        <div class="row align-items-center g-3">
+                            <!-- Candidate Bio & Match -->
+                            <div class="col-lg-5">
+                                <div class="d-flex align-items-start gap-3">
+                                    <div class="rounded-circle bg-light text-primary d-flex align-items-center justify-content-center border" style="width: 48px; height: 48px; min-width: 48px;">
+                                        <i class="bi bi-person fs-4"></i>
+                                    </div>
+                                    <div>
+                                        <h5 class="fw-bold mb-0">
+                                            <a href="{% url 'accounts:candidate_profile_view' %}" class="text-dark text-decoration-none">
+                                                {{ cand.get_full_name|default:cand.username }}
+                                            </a>
+                                        </h5>
+                                        <div class="small text-muted mb-1">{{ prof.headline|default:"Candidate" }}</div>
+                                        <div class="small text-secondary">
+                                            <i class="bi bi-geo-alt me-1"></i> {{ prof.location|default:"Not specified" }} •
+                                            <i class="bi bi-envelope me-1"></i> {{ cand.email }}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Skill Match Bar -->
+                                <div class="mt-3">
+                                    <div class="d-flex justify-content-between align-items-center small mb-1">
+                                        <span class="text-muted fw-semibold">Job Skill Match:</span>
+                                        <strong class="{% if item.match_score >= 70 %}text-success{% elif item.match_score >= 40 %}text-warning{% else %}text-muted{% endif %}">
+                                            {{ item.match_score }}%
+                                        </strong>
+                                    </div>
+                                    <div class="progress" style="height: 5px;">
+                                        <div class="progress-bar {% if item.match_score >= 70 %}bg-success{% elif item.match_score >= 40 %}bg-warning{% else %}bg-secondary{% endif %}"
+                                             role="progressbar" style="width: {{ item.match_score }}%;"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Applied Position & Cover Note -->
+                            <div class="col-lg-3">
+                                <span class="badge bg-light text-dark border mb-1">{{ app.job.title }}</span>
+                                <div class="small text-muted mb-1">Applied: {{ app.applied_at|date:"M d, Y" }}</div>
+                                {% if app.cover_letter %}
+                                    <p class="small text-secondary mb-0 fst-italic">"{{ app.cover_letter|truncatewords:14 }}"</p>
+                                {% endif %}
+                            </div>
+
+                            <!-- Resume & Actions -->
+                            <div class="col-lg-4">
+                                <div class="d-flex flex-column gap-2">
+                                    <!-- Status update form -->
+                                    <form action="{% url 'applications:update_status' application_id=app.id %}" method="post" class="d-flex gap-1">
+                                        {% csrf_token %}
+                                        <select name="status" class="form-select form-select-sm" style="font-size: 0.82rem;">
+                                            {% for val, label in status_choices %}
+                                                <option value="{{ val }}" {% if app.status == val %}selected{% endif %}>{{ label }}</option>
+                                            {% endfor %}
+                                        </select>
+                                        <button type="submit" class="btn btn-outline-primary btn-sm px-3">Update</button>
+                                    </form>
+
+                                    <div class="d-flex gap-2 justify-content-end align-items-center pt-1">
+                                        <a href="{% url 'accounts:download_resume' user_id=cand.id %}" target="_blank" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+                                            <i class="bi bi-file-earmark-pdf text-danger me-1"></i> Resume
+                                        </a>
+
+                                        {% if app.interview %}
+                                            <a href="{% url 'applications:interview_detail' interview_id=app.interview.id %}" class="btn btn-sm btn-warning rounded-pill px-3 fw-semibold">
+                                                <i class="bi bi-calendar-event me-1"></i> Interview Set
+                                            </a>
+                                        {% else %}
+                                            <a href="{% url 'applications:schedule_interview' application_id=app.id %}" class="btn btn-sm btn-outline-success rounded-pill px-3">
+                                                <i class="bi bi-calendar-plus me-1"></i> Schedule
+                                            </a>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endwith %}
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="card p-5 text-center text-muted">
+            <i class="bi bi-people fs-1 mb-3 text-secondary"></i>
+            <h5>No candidates found</h5>
+            <p class="small">No applications match your selected job or filter criteria.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

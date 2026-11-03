@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+{% load app_tags %}
+
+{% block title %}My Job Applications | CareerConnect{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <h3 class="fw-bold mb-1"><i class="bi bi-file-earmark-check text-primary me-2"></i>Application Tracker</h3>
+            <p class="text-muted small mb-0">Monitor the live status and hiring stages of all your submissions</p>
+        </div>
+        <a href="{% url 'jobs:job_list' %}" class="btn btn-outline-primary btn-sm rounded-pill">
+            <i class="bi bi-search me-1"></i> Explore More Jobs
+        </a>
+    </div>
+
+    <!-- Status Tabs -->
+    <ul class="nav nav-pills mb-4 gap-2 flex-wrap bg-white p-2 rounded-3 shadow-sm border">
+        <li class="nav-item">
+            <a class="nav-link rounded-pill px-3 py-1 small {% if current_status == 'all' %}active{% endif %}" href="?status=all">
+                All ({{ counts.all }})
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link rounded-pill px-3 py-1 small {% if current_status == 'Applied' %}active{% endif %}" href="?status=Applied">
+                Applied ({{ counts.Applied }})
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link rounded-pill px-3 py-1 small {% if current_status == 'Under Review' %}active{% endif %}" href="?status=Under Review">
+                Under Review ({{ counts.Under_Review|default:counts|get_item:'Under Review' }})
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link rounded-pill px-3 py-1 small {% if current_status == 'Shortlisted' %}active{% endif %}" href="?status=Shortlisted">
+                Shortlisted ({{ counts.Shortlisted }})
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link rounded-pill px-3 py-1 small {% if current_status == 'Interview Scheduled' %}active{% endif %}" href="?status=Interview Scheduled">
+                Interview ({{ counts|get_item:'Interview Scheduled' }})
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link rounded-pill px-3 py-1 small {% if current_status == 'Selected' %}active{% endif %}" href="?status=Selected">
+                Selected ({{ counts.Selected }})
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link rounded-pill px-3 py-1 small {% if current_status == 'Rejected' %}active{% endif %}" href="?status=Rejected">
+                Rejected ({{ counts.Rejected }})
+            </a>
+        </li>
+    </ul>
+
+    <!-- Application List -->
+    {% if applications %}
+        <div class="row g-3">
+            {% for app in applications %}
+                <div class="col-12">
+                    <div class="card p-3 shadow-sm border">
+                        <div class="row align-items-center g-3">
+                            <div class="col-md-5">
+                                <div class="d-flex align-items-center gap-2 mb-1">
+                                    <span class="badge {{ app.status_badge_class }} px-2 py-1">
+                                        {{ app.status }}
+                                    </span>
+                                    <span class="badge bg-light text-muted border small">{{ app.job.job_type }}</span>
+                                </div>
+                                <h5 class="fw-bold mb-1">
+                                    <a href="{% url 'jobs:job_detail' pk=app.job.pk slug=app.job.slug %}" class="text-dark text-decoration-none">
+                                        {{ app.job.title }}
+                                    </a>
+                                </h5>
+                                <div class="small text-muted">
+                                    <i class="bi bi-buildings"></i> {{ app.job.company.name }} • <i class="bi bi-geo-alt"></i> {{ app.job.location }}
+                                </div>
+                            </div>
+
+                            <div class="col-md-3">
+                                <small class="text-muted d-block">Submitted on:</small>
+                                <span class="small fw-semibold"><i class="bi bi-clock-history me-1"></i>{{ app.applied_at|date:"M d, Y - h:i A" }}</span>
+                                {% if app.updated_at != app.applied_at %}
+                                    <small class="text-muted d-block mt-1">Updated {{ app.updated_at|timesince }} ago</small>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-4 d-flex flex-column align-items-md-end justify-content-center gap-2">
+                                {% if app.interview %}
+                                    <a href="{% url 'applications:interview_detail' interview_id=app.interview.id %}" class="btn btn-warning btn-sm rounded-pill fw-semibold shadow-sm">
+                                        <i class="bi bi-calendar2-check-fill me-1"></i> View Interview Schedule
+                                    </a>
+                                {% endif %}
+
+                                <div class="d-flex gap-2">
+                                    <a href="{% url 'jobs:job_detail' pk=app.job.pk slug=app.job.slug %}" class="btn btn-outline-primary btn-sm rounded-pill px-3">
+                                        Job Details
+                                    </a>
+                                    {% if app.can_withdraw %}
+                                        <a href="{% url 'applications:withdraw_application' application_id=app.id %}" class="btn btn-outline-danger btn-sm rounded-pill px-3">
+                                            Withdraw
+                                        </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="card p-5 text-center text-muted">
+            <i class="bi bi-inbox fs-1 mb-3 text-secondary"></i>
+            <h5>No applications found</h5>
+            <p class="small">You haven't submitted any applications under this status yet.</p>
+            <div class="mt-2">
+                <a href="{% url 'jobs:job_list' %}" class="btn btn-primary btn-sm rounded-pill px-4">Browse Jobs & Apply</a>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

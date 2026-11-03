@@ -1,0 +1,205 @@
+{% extends 'base.html' %}
+
+{% block title %}Recruiter Dashboard | CareerConnect{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Recruiter Hero Banner -->
+    <div class="card p-4 mb-4 shadow-sm border-0 bg-dark text-white position-relative overflow-hidden" style="border-radius: 14px;">
+        <div class="row align-items-center g-3">
+            <div class="col-lg-8">
+                <span class="badge bg-success px-3 py-1 rounded-pill mb-2 fw-semibold">
+                    Employer Portal
+                </span>
+                <h2 class="fw-bold mb-1">
+                    {{ company.name|default:"Recruiter Dashboard" }}
+                </h2>
+                <p class="mb-0 text-white-50 small">
+                    Manage your job openings, track applicants across the hiring pipeline, and review resumes.
+                </p>
+            </div>
+            <div class="col-lg-4 text-lg-end d-flex gap-2 justify-content-lg-end">
+                <a href="{% url 'jobs:job_create' %}" class="btn btn-primary rounded-pill px-4 fw-semibold shadow-sm">
+                    <i class="bi bi-plus-circle me-1"></i> Post New Job
+                </a>
+                <a href="{% url 'companies:company_edit' %}" class="btn btn-outline-light rounded-pill px-3">
+                    <i class="bi bi-building me-1"></i> Company
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recruitment Analytics Metric Cards -->
+    <div class="row g-3 mb-4 text-center">
+        <div class="col-6 col-md-3">
+            <div class="card p-3 shadow-sm border-0 h-100">
+                <span class="text-muted small">Total Job Postings</span>
+                <h3 class="fw-bold text-primary mb-0 mt-1">{{ jobs_count }}</h3>
+                <small class="text-success">{{ active_jobs_count }} active now</small>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card p-3 shadow-sm border-0 h-100">
+                <span class="text-muted small">Total Applicants</span>
+                <h3 class="fw-bold text-info mb-0 mt-1">{{ total_apps_count }}</h3>
+                <small class="text-muted">Across all roles</small>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card p-3 shadow-sm border-0 h-100">
+                <span class="text-muted small">Shortlisted</span>
+                <h3 class="fw-bold text-warning mb-0 mt-1">{{ status_counts.shortlisted }}</h3>
+                <small class="text-muted">{{ status_counts.interview }} in interviews</small>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card p-3 shadow-sm border-0 h-100">
+                <span class="text-muted small">Hiring Conversion Rate</span>
+                <h3 class="fw-bold text-success mb-0 mt-1">{{ conversion_rate }}%</h3>
+                <small class="text-muted">{{ status_counts.selected }} selected</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hiring Pipeline Status Breakdown -->
+    <div class="card p-4 shadow-sm border-0 mb-4">
+        <h6 class="fw-bold mb-3"><i class="bi bi-bar-chart-steps text-primary me-2"></i>Overall Candidate Pipeline Distribution</h6>
+        <div class="row text-center g-2">
+            <div class="col-4 col-md-2">
+                <div class="p-2 border rounded bg-light">
+                    <small class="text-muted d-block">Applied</small>
+                    <span class="fw-bold fs-5 text-primary">{{ status_counts.applied }}</span>
+                </div>
+            </div>
+            <div class="col-4 col-md-2">
+                <div class="p-2 border rounded bg-light">
+                    <small class="text-muted d-block">Under Review</small>
+                    <span class="fw-bold fs-5 text-info">{{ status_counts.under_review }}</span>
+                </div>
+            </div>
+            <div class="col-4 col-md-2">
+                <div class="p-2 border rounded bg-light">
+                    <small class="text-muted d-block">Shortlisted</small>
+                    <span class="fw-bold fs-5 text-warning">{{ status_counts.shortlisted }}</span>
+                </div>
+            </div>
+            <div class="col-4 col-md-2">
+                <div class="p-2 border rounded bg-light">
+                    <small class="text-muted d-block">Interview</small>
+                    <span class="fw-bold fs-5 text-purple">{{ status_counts.interview }}</span>
+                </div>
+            </div>
+            <div class="col-4 col-md-2">
+                <div class="p-2 border rounded bg-light">
+                    <small class="text-muted d-block">Selected</small>
+                    <span class="fw-bold fs-5 text-success">{{ status_counts.selected }}</span>
+                </div>
+            </div>
+            <div class="col-4 col-md-2">
+                <div class="p-2 border rounded bg-light">
+                    <small class="text-muted d-block">Rejected</small>
+                    <span class="fw-bold fs-5 text-danger">{{ status_counts.rejected }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Recent Applicants -->
+        <div class="col-lg-7">
+            <div class="card p-4 shadow-sm border-0 h-100">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0"><i class="bi bi-people text-primary me-2"></i>Recent Applicants</h5>
+                    <a href="{% url 'applications:recruiter_applicants' %}" class="small text-decoration-none fw-semibold">
+                        View All Applicants &rarr;
+                    </a>
+                </div>
+
+                {% if recent_applications %}
+                    <div class="d-flex flex-column gap-3">
+                        {% for app in recent_applications %}
+                            <div class="p-3 border rounded-3 bg-light d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                <div>
+                                    <h6 class="fw-bold mb-0">
+                                        {{ app.candidate.get_full_name|default:app.candidate.username }}
+                                    </h6>
+                                    <small class="text-muted d-block">Applied for <strong>{{ app.job.title }}</strong></small>
+                                    <span class="badge {{ app.status_badge_class }} mt-1" style="font-size: 0.72rem;">{{ app.status }}</span>
+                                </div>
+                                <div class="text-end d-flex gap-2 align-items-center">
+                                    <a href="{% url 'accounts:download_resume' user_id=app.candidate.id %}" target="_blank" class="btn btn-sm btn-outline-danger rounded-pill px-2" title="Resume">
+                                        <i class="bi bi-file-earmark-pdf"></i>
+                                    </a>
+                                    <a href="{% url 'applications:schedule_interview' application_id=app.id %}" class="btn btn-sm btn-outline-success rounded-pill px-3">
+                                        Interview
+                                    </a>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-4 text-muted">
+                        <p class="small mb-0">No candidate applications received yet.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Managed Job Postings -->
+        <div class="col-lg-5">
+            <div class="card p-4 shadow-sm border-0 h-100">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0"><i class="bi bi-briefcase text-primary me-2"></i>My Job Postings</h5>
+                    <a href="{% url 'jobs:job_create' %}" class="small text-decoration-none fw-semibold">
+                        + New &rarr;
+                    </a>
+                </div>
+
+                {% if recent_jobs %}
+                    <div class="d-flex flex-column gap-3">
+                        {% for job in recent_jobs %}
+                            <div class="p-3 border rounded-3 bg-white">
+                                <div class="d-flex justify-content-between align-items-start mb-1">
+                                    <h6 class="fw-bold mb-0">
+                                        <a href="{% url 'jobs:job_detail' pk=job.pk slug=job.slug %}" class="text-dark text-decoration-none">
+                                            {{ job.title }}
+                                        </a>
+                                    </h6>
+                                    {% if job.is_active %}
+                                        <span class="badge bg-success" style="font-size: 0.7rem;">Active</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary" style="font-size: 0.7rem;">Closed</span>
+                                    {% endif %}
+                                </div>
+
+                                <div class="small text-muted mb-2">
+                                    {{ job.job_type }} • Deadline: {{ job.deadline|date:"M d, Y" }}
+                                </div>
+
+                                <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+                                    <span class="small fw-semibold text-primary">
+                                        <i class="bi bi-person-check me-1"></i> {{ job.applications.count }} Applicant{{ job.applications.count|pluralize }}
+                                    </span>
+                                    <div class="d-flex gap-1">
+                                        <a href="{% url 'applications:recruiter_pipeline' job_id=job.id %}" class="btn btn-sm btn-outline-primary rounded-pill px-2" title="Hiring Pipeline">
+                                            <i class="bi bi-kanban"></i> Pipeline
+                                        </a>
+                                        <a href="{% url 'jobs:job_edit' pk=job.pk %}" class="btn btn-sm btn-outline-secondary rounded-pill px-2" title="Edit">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-4 text-muted">
+                        <p class="small mb-2">You haven't posted any jobs yet.</p>
+                        <a href="{% url 'jobs:job_create' %}" class="btn btn-primary btn-sm rounded-pill px-3">Post Your First Job</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

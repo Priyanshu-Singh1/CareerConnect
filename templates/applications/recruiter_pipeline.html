@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+{% load app_tags %}
+
+{% block title %}Hiring Pipeline: {{ job.title }} | CareerConnect{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4 px-lg-5">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <span class="badge badge-soft-primary">{{ job.job_type }}</span>
+                <span class="badge badge-soft-secondary">{{ job.work_mode }}</span>
+                <h4 class="fw-bold mb-0">{{ job.title }}</h4>
+            </div>
+            <p class="text-muted small mb-0">
+                Application Pipeline Kanban • {{ total_applicants }} Total Applicant{{ total_applicants|pluralize }}
+            </p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'applications:recruiter_job_applicants' job_id=job.id %}" class="btn btn-outline-secondary btn-sm rounded-pill">
+                <i class="bi bi-list-task me-1"></i> Switch to List View
+            </a>
+            <a href="{% url 'jobs:job_detail' pk=job.pk slug=job.slug %}" class="btn btn-outline-primary btn-sm rounded-pill">
+                <i class="bi bi-box-arrow-up-right me-1"></i> Job Page
+            </a>
+        </div>
+    </div>
+
+    <!-- Kanban Stages Horizontal Scroller -->
+    <div class="kanban-board">
+        <!-- Stage 1: Applied -->
+        <div class="kanban-col">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="fw-bold mb-0 text-primary"><i class="bi bi-inbox me-1"></i> Applied</h6>
+                <span class="badge bg-primary rounded-pill">{{ pipeline_stages.Applied|length }}</span>
+            </div>
+            {% for app in pipeline_stages.Applied %}
+                {% include 'applications/_pipeline_card.html' with app=app %}
+            {% empty %}
+                <div class="text-center py-4 text-muted small">No applicants</div>
+            {% endfor %}
+        </div>
+
+        <!-- Stage 2: Under Review -->
+        <div class="kanban-col">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="fw-bold mb-0 text-info"><i class="bi bi-search me-1"></i> Under Review</h6>
+                <span class="badge bg-info text-dark rounded-pill">{{ pipeline_stages|get_item:'Under Review'|length }}</span>
+            </div>
+            {% for app in pipeline_stages|get_item:'Under Review' %}
+                {% include 'applications/_pipeline_card.html' with app=app %}
+            {% empty %}
+                <div class="text-center py-4 text-muted small">No applicants</div>
+            {% endfor %}
+        </div>
+
+        <!-- Stage 3: Shortlisted -->
+        <div class="kanban-col">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="fw-bold mb-0 text-warning"><i class="bi bi-star me-1"></i> Shortlisted</h6>
+                <span class="badge bg-warning text-dark rounded-pill">{{ pipeline_stages.Shortlisted|length }}</span>
+            </div>
+            {% for app in pipeline_stages.Shortlisted %}
+                {% include 'applications/_pipeline_card.html' with app=app %}
+            {% empty %}
+                <div class="text-center py-4 text-muted small">No applicants</div>
+            {% endfor %}
+        </div>
+
+        <!-- Stage 4: Interview Scheduled -->
+        <div class="kanban-col">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="fw-bold mb-0 text-purple"><i class="bi bi-calendar2-check me-1"></i> Interview</h6>
+                <span class="badge bg-purple text-white rounded-pill">{{ pipeline_stages|get_item:'Interview Scheduled'|length }}</span>
+            </div>
+            {% for app in pipeline_stages|get_item:'Interview Scheduled' %}
+                {% include 'applications/_pipeline_card.html' with app=app %}
+            {% empty %}
+                <div class="text-center py-4 text-muted small">No applicants</div>
+            {% endfor %}
+        </div>
+
+        <!-- Stage 5: Selected -->
+        <div class="kanban-col">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="fw-bold mb-0 text-success"><i class="bi bi-check-circle me-1"></i> Selected / Hired</h6>
+                <span class="badge bg-success rounded-pill">{{ pipeline_stages.Selected|length }}</span>
+            </div>
+            {% for app in pipeline_stages.Selected %}
+                {% include 'applications/_pipeline_card.html' with app=app %}
+            {% empty %}
+                <div class="text-center py-4 text-muted small">No applicants</div>
+            {% endfor %}
+        </div>
+
+        <!-- Stage 6: Rejected -->
+        <div class="kanban-col">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="fw-bold mb-0 text-danger"><i class="bi bi-x-circle me-1"></i> Rejected</h6>
+                <span class="badge bg-danger rounded-pill">{{ pipeline_stages.Rejected|length }}</span>
+            </div>
+            {% for app in pipeline_stages.Rejected %}
+                {% include 'applications/_pipeline_card.html' with app=app %}
+            {% empty %}
+                <div class="text-center py-4 text-muted small">No applicants</div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

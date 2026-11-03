@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit Company Profile | CareerConnect{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card p-4 shadow-sm border-0">
+                <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+                    <div>
+                        <h3 class="fw-bold mb-1">Company Profile</h3>
+                        <p class="text-muted small mb-0">Set up your brand and company identity for job postings</p>
+                    </div>
+                    <a href="{% url 'accounts:recruiter_dashboard' %}" class="btn btn-outline-secondary btn-sm rounded-pill">
+                        Dashboard
+                    </a>
+                </div>
+
+                <form method="post" enctype="multipart/form-data" novalidate>
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Company Name <span class="text-danger">*</span></label>
+                        {{ form.name }}
+                        {% if form.name.errors %}<div class="text-danger small mt-1">{{ form.name.errors.0 }}</div>{% endif %}
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Industry <span class="text-danger">*</span></label>
+                            {{ form.industry }}
+                            {% if form.industry.errors %}<div class="text-danger small mt-1">{{ form.industry.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Headquarters Location <span class="text-danger">*</span></label>
+                            {{ form.location }}
+                            {% if form.location.errors %}<div class="text-danger small mt-1">{{ form.location.errors.0 }}</div>{% endif %}
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Company Size</label>
+                            {{ form.company_size }}
+                            {% if form.company_size.errors %}<div class="text-danger small mt-1">{{ form.company_size.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Official Website</label>
+                            {{ form.website }}
+                            {% if form.website.errors %}<div class="text-danger small mt-1">{{ form.website.errors.0 }}</div>{% endif %}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Company Logo</label>
+                        {{ form.logo }}
+                        {% if form.instance.logo %}
+                            <div class="mt-2 small text-muted">
+                                Current: <img src="{{ form.instance.logo.url }}" alt="Logo" class="rounded border p-1" style="height: 40px;">
+                            </div>
+                        {% endif %}
+                        {% if form.logo.errors %}<div class="text-danger small mt-1">{{ form.logo.errors.0 }}</div>{% endif %}
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label small fw-semibold">About Company & Culture</label>
+                        {{ form.description }}
+                        {% if form.description.errors %}<div class="text-danger small mt-1">{{ form.description.errors.0 }}</div>{% endif %}
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 border-top pt-3">
+                        <a href="{% url 'accounts:recruiter_dashboard' %}" class="btn btn-light px-4 rounded-pill">Cancel</a>
+                        <button type="submit" class="btn btn-primary px-5 py-2 rounded-pill fw-semibold shadow-sm">
+                            Save Company Profile
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

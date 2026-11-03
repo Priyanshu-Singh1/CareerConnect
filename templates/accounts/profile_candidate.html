@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ profile.user.get_full_name|default:profile.user.username }}'s Profile | CareerConnect{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row g-4">
+        <!-- Sidebar: Basic Info & Completeness -->
+        <div class="col-lg-4">
+            <div class="card p-4 shadow-sm text-center mb-4">
+                <div class="position-relative d-inline-block mx-auto mb-3">
+                    {% if profile.avatar %}
+                        <img src="{{ profile.avatar.url }}" alt="{{ profile.user.username }}" class="rounded-circle border" style="width: 120px; height: 120px; object-fit: cover;">
+                    {% else %}
+                        <div class="rounded-circle bg-primary bg-opacity-10 text-primary d-inline-flex align-items-center justify-content-center" style="width: 120px; height: 120px; font-size: 3rem;">
+                            <i class="bi bi-person"></i>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <h4 class="fw-bold mb-1">{{ profile.user.get_full_name|default:profile.user.username }}</h4>
+                <p class="text-primary small fw-semibold mb-2">{{ profile.headline|default:"Candidate / Job Seeker" }}</p>
+
+                <p class="text-muted small mb-3">
+                    <i class="bi bi-geo-alt me-1"></i>{{ profile.location|default:"Location not set" }}
+                </p>
+
+                <!-- Profile Completeness Indicator -->
+                <div class="p-3 bg-light rounded-3 mb-3 text-start">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <span class="small fw-semibold text-secondary">Profile Completeness</span>
+                        <span class="badge {% if profile.completeness_percentage >= 80 %}bg-success{% elif profile.completeness_percentage >= 50 %}bg-warning text-dark{% else %}bg-danger{% endif %}">
+                            {{ profile.completeness_percentage }}%
+                        </span>
+                    </div>
+                    <div class="progress" style="height: 6px;">
+                        <div class="progress-bar {% if profile.completeness_percentage >= 80 %}bg-success{% elif profile.completeness_percentage >= 50 %}bg-warning{% else %}bg-danger{% endif %}"
+                             role="progressbar" style="width: {{ profile.completeness_percentage }}%;"></div>
+                    </div>
+                    {% if profile.completeness_percentage < 100 %}
+                        <small class="text-muted d-block mt-2" style="font-size: 0.75rem;">
+                            Add education, skills, resume & links to achieve 100% visibility to recruiters.
+                        </small>
+                    {% endif %}
+                </div>
+
+                <!-- Contact & Social Links -->
+                <div class="d-flex flex-column gap-2 text-start small border-top pt-3 mb-3">
+                    <div><i class="bi bi-envelope text-muted me-2"></i> {{ profile.user.email }}</div>
+                    {% if profile.phone %}
+                        <div><i class="bi bi-telephone text-muted me-2"></i> {{ profile.phone }}</div>
+                    {% endif %}
+                    {% if profile.portfolio_url %}
+                        <div>
+                            <i class="bi bi-globe text-muted me-2"></i>
+                            <a href="{{ profile.portfolio_url }}" target="_blank" rel="noopener noreferrer" class="text-decoration-none">Portfolio</a>
+                        </div>
+                    {% endif %}
+                    {% if profile.github_url %}
+                        <div>
+                            <i class="bi bi-github text-muted me-2"></i>
+                            <a href="{{ profile.github_url }}" target="_blank" rel="noopener noreferrer" class="text-decoration-none">GitHub Profile</a>
+                        </div>
+                    {% endif %}
+                    {% if profile.linkedin_url %}
+                        <div>
+                            <i class="bi bi-linkedin text-muted me-2"></i>
+                            <a href="{{ profile.linkedin_url }}" target="_blank" rel="noopener noreferrer" class="text-decoration-none">LinkedIn Profile</a>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Resume Download (Secure Check) -->
+                {% if profile.resume %}
+                    <div class="mb-3">
+                        <a href="{% url 'accounts:download_resume' user_id=profile.user.id %}" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill w-100">
+                            <i class="bi bi-file-earmark-pdf me-1"></i> View / Download Resume
+                        </a>
+                    </div>
+                {% endif %}
+
+                {% if user == profile.user %}
+                    <a href="{% url 'accounts:candidate_profile_edit' %}" class="btn btn-primary btn-sm rounded-pill w-100">
+                        <i class="bi bi-pencil-square me-1"></i> Edit Profile
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Main Details Column -->
+        <div class="col-lg-8">
+            <!-- About Me -->
+            <div class="card p-4 shadow-sm mb-4">
+                <h5 class="fw-bold mb-3"><i class="bi bi-person-lines-fill text-primary me-2"></i>Professional Summary</h5>
+                <p class="text-secondary mb-0" style="white-space: pre-line;">{{ profile.bio|default:"No professional summary provided yet." }}</p>
+            </div>
+
+            <!-- Skills -->
+            <div class="card p-4 shadow-sm mb-4">
+                <h5 class="fw-bold mb-3"><i class="bi bi-tools text-primary me-2"></i>Skills & Competencies</h5>
+                <div class="d-flex flex-wrap gap-2">
+                    {% for skill in profile.skills.all %}
+                        <span class="badge bg-light text-dark border px-3 py-2 fs-6">{{ skill.name }}</span>
+                    {% empty %}
+                        <p class="text-muted small mb-0">No skills added yet.</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Education -->
+            <div class="card p-4 shadow-sm mb-4">
+                <h5 class="fw-bold mb-3"><i class="bi bi-mortarboard text-primary me-2"></i>Education</h5>
+                <div class="text-secondary" style="white-space: pre-line;">{{ profile.education|default:"No education details added yet." }}</div>
+            </div>
+
+            <!-- Experience -->
+            <div class="card p-4 shadow-sm mb-4">
+                <h5 class="fw-bold mb-3"><i class="bi bi-briefcase text-primary me-2"></i>Work Experience & Internships</h5>
+                <div class="text-secondary" style="white-space: pre-line;">{{ profile.experience|default:"No past experience or internships added yet." }}</div>
+            </div>
+
+            <!-- Projects -->
+            <div class="card p-4 shadow-sm mb-4">
+                <h5 class="fw-bold mb-3"><i class="bi bi-code-slash text-primary me-2"></i>Key Projects</h5>
+                <div class="text-secondary" style="white-space: pre-line;">{{ profile.projects|default:"No projects added yet." }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

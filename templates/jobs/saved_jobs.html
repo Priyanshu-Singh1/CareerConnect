@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+
+{% block title %}My Saved Jobs | CareerConnect{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold mb-1"><i class="bi bi-bookmark-heart text-danger me-2"></i>Saved Opportunities</h3>
+            <p class="text-muted small mb-0">Your bookmarked jobs and internships</p>
+        </div>
+        <a href="{% url 'jobs:job_list' %}" class="btn btn-outline-primary btn-sm rounded-pill">
+            <i class="bi bi-search me-1"></i> Browse More
+        </a>
+    </div>
+
+    {% if saved_items %}
+        <div class="row g-3">
+            {% for item in saved_items %}
+                <div class="col-md-6">
+                    <div class="card job-card p-3 h-100 d-flex flex-column justify-content-between">
+                        <div>
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div>
+                                    <span class="badge badge-soft-primary">{{ item.job.job_type }}</span>
+                                    <span class="badge badge-soft-secondary">{{ item.job.work_mode }}</span>
+                                </div>
+                                <a href="{% url 'jobs:toggle_save_job' pk=item.job.pk %}" class="btn btn-sm text-danger p-0" title="Remove from wishlist">
+                                    <i class="bi bi-trash3 fs-5"></i>
+                                </a>
+                            </div>
+
+                            <h5 class="fw-bold mb-1">
+                                <a href="{% url 'jobs:job_detail' pk=item.job.pk slug=item.job.slug %}" class="text-dark text-decoration-none">
+                                    {{ item.job.title }}
+                                </a>
+                            </h5>
+
+                            <p class="text-muted small mb-2">
+                                <i class="bi bi-buildings"></i> {{ item.job.company.name }} • <i class="bi bi-geo-alt"></i> {{ item.job.location }}
+                            </p>
+
+                            <p class="fw-bold text-success small mb-2">
+                                {{ item.job.salary_display }}
+                            </p>
+                        </div>
+
+                        <div class="pt-3 border-top d-flex justify-content-between align-items-center mt-3">
+                            <small class="text-danger">
+                                <i class="bi bi-calendar-event me-1"></i> Deadline: {{ item.job.deadline|date:"M d, Y" }}
+                            </small>
+                            <a href="{% url 'jobs:job_detail' pk=item.job.pk slug=item.job.slug %}" class="btn btn-primary btn-sm rounded-pill px-3">
+                                View & Apply
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="card p-5 text-center text-muted">
+            <i class="bi bi-bookmark fs-1 mb-3 text-secondary"></i>
+            <h5>Your wishlist is currently empty</h5>
+            <p class="small">Bookmark opportunities you are interested in to review and apply to them later.</p>
+            <div class="mt-2">
+                <a href="{% url 'jobs:job_list' %}" class="btn btn-primary btn-sm rounded-pill px-4">Explore Opportunities</a>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

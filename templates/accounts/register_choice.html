@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% block title %}Join CareerConnect | Choose Your Account Type{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="text-center mb-5">
+        <h2 class="fw-bold mb-2">Join CareerConnect</h2>
+        <p class="text-secondary">Select how you want to use the platform to get started</p>
+    </div>
+
+    <div class="row justify-content-center g-4">
+        <!-- Candidate Card -->
+        <div class="col-md-5 col-lg-4">
+            <div class="card h-100 p-4 text-center border-2 border-primary border-opacity-25 shadow-sm d-flex flex-column justify-content-between">
+                <div>
+                    <div class="p-4 bg-primary bg-opacity-10 rounded-circle d-inline-flex text-primary mb-3">
+                        <i class="bi bi-mortarboard fs-1"></i>
+                    </div>
+                    <h4 class="fw-bold mb-2">Candidate / Student</h4>
+                    <p class="text-muted small mb-4">
+                        I am looking for jobs or internships. I want to build a resume profile, apply with one click, and track application statuses.
+                    </p>
+                    <ul class="list-unstyled text-start small text-secondary mb-4 d-flex flex-column gap-2">
+                        <li><i class="bi bi-check-circle-fill text-success me-2"></i> Free job applications</li>
+                        <li><i class="bi bi-check-circle-fill text-success me-2"></i> Smart skill match percentage</li>
+                        <li><i class="bi bi-check-circle-fill text-success me-2"></i> Application progress tracking</li>
+                        <li><i class="bi bi-check-circle-fill text-success me-2"></i> Saved job wishlist</li>
+                    </ul>
+                </div>
+                <div>
+                    <a href="{% url 'accounts:register_candidate' %}" class="btn btn-primary w-100 py-2 rounded-pill fw-semibold">
+                        Register as Candidate
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recruiter Card -->
+        <div class="col-md-5 col-lg-4">
+            <div class="card h-100 p-4 text-center border-2 border-success border-opacity-25 shadow-sm d-flex flex-column justify-content-between">
+                <div>
+                    <div class="p-4 bg-success bg-opacity-10 rounded-circle d-inline-flex text-success mb-3">
+                        <i class="bi bi-building fs-1"></i>
+                    </div>
+                    <h4 class="fw-bold mb-2">Recruiter / Employer</h4>
+                    <p class="text-muted small mb-4">
+                        I represent a company or agency. I want to publish job postings, review applicants, and schedule candidate interviews.
+                    </p>
+                    <ul class="list-unstyled text-start small text-secondary mb-4 d-flex flex-column gap-2">
+                        <li><i class="bi bi-check-circle-fill text-success me-2"></i> Publish jobs & internships</li>
+                        <li><i class="bi bi-check-circle-fill text-success me-2"></i> Structured candidate pipeline</li>
+                        <li><i class="bi bi-check-circle-fill text-success me-2"></i> Interview scheduling tools</li>
+                        <li><i class="bi bi-check-circle-fill text-success me-2"></i> Recruitment analytics</li>
+                    </ul>
+                </div>
+                <div>
+                    <a href="{% url 'accounts:register_recruiter' %}" class="btn btn-success w-100 py-2 rounded-pill fw-semibold">
+                        Register as Recruiter
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="text-center mt-5">
+        <p class="text-muted small">
+            Already have an account? <a href="{% url 'accounts:login' %}" class="text-primary fw-semibold text-decoration-none">Sign In here</a>
+        </p>
+    </div>
+</div>
+{% endblock %}

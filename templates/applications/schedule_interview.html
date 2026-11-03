@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+
+{% block title %}Schedule Interview | CareerConnect{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-7">
+            <div class="card p-4 shadow-sm border-0">
+                <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+                    <div>
+                        <h3 class="fw-bold mb-1"><i class="bi bi-calendar2-plus text-primary me-2"></i>Schedule Interview</h3>
+                        <p class="text-muted small mb-0">Set up an interview invitation for <strong>{{ application.candidate.get_full_name|default:application.candidate.username }}</strong></p>
+                    </div>
+                    <a href="{% url 'applications:recruiter_job_applicants' job_id=application.job.id %}" class="btn btn-outline-secondary btn-sm rounded-pill">
+                        Cancel
+                    </a>
+                </div>
+
+                <!-- Job & Candidate Card -->
+                <div class="p-3 bg-light rounded-3 mb-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="badge bg-primary mb-1">{{ application.job.title }}</span>
+                            <h6 class="fw-bold mb-0">{{ application.candidate.get_full_name|default:application.candidate.username }}</h6>
+                            <small class="text-muted">{{ application.candidate.email }}</small>
+                        </div>
+                        <a href="{% url 'accounts:download_resume' user_id=application.candidate.id %}" target="_blank" class="btn btn-sm btn-outline-danger rounded-pill">
+                            <i class="bi bi-file-earmark-pdf me-1"></i> Candidate Resume
+                        </a>
+                    </div>
+                </div>
+
+                <form method="post" novalidate>
+                    {% csrf_token %}
+
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger small">
+                            {% for error in form.non_field_errors %}
+                                <div>{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Interview Date <span class="text-danger">*</span></label>
+                            {{ form.scheduled_date }}
+                            {% if form.scheduled_date.errors %}<div class="text-danger small mt-1">{{ form.scheduled_date.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Interview Time <span class="text-danger">*</span></label>
+                            {{ form.scheduled_time }}
+                            {% if form.scheduled_time.errors %}<div class="text-danger small mt-1">{{ form.scheduled_time.errors.0 }}</div>{% endif %}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Meeting Format / Mode <span class="text-danger">*</span></label>
+                        {{ form.mode }}
+                        {% if form.mode.errors %}<div class="text-danger small mt-1">{{ form.mode.errors.0 }}</div>{% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Meeting Link or Location Address <span class="text-danger">*</span></label>
+                        {{ form.location_or_link }}
+                        <small class="text-muted">Enter Google Meet/Zoom URL, or physical office room address.</small>
+                        {% if form.location_or_link.errors %}<div class="text-danger small mt-1">{{ form.location_or_link.errors.0 }}</div>{% endif %}
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label small fw-semibold">Candidate Instructions & Notes</label>
+                        {{ form.instructions }}
+                        <small class="text-muted">e.g., Topics to prepare, interview format, coding environment requirements.</small>
+                        {% if form.instructions.errors %}<div class="text-danger small mt-1">{{ form.instructions.errors.0 }}</div>{% endif %}
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 border-top pt-3">
+                        <a href="{% url 'applications:recruiter_job_applicants' job_id=application.job.id %}" class="btn btn-light px-4 rounded-pill">Cancel</a>
+                        <button type="submit" class="btn btn-primary px-5 py-2 rounded-pill fw-semibold shadow-sm">
+                            <i class="bi bi-calendar-check me-1"></i> Send Interview Invitation
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

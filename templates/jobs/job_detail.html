@@ -1,0 +1,284 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ job.title }} at {{ job.company.name }} | CareerConnect{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb small">
+            <li class="breadcrumb-item"><a href="{% url 'jobs:home' %}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'jobs:job_list' %}">Jobs</a></li>
+            {% if job.category %}
+                <li class="breadcrumb-item"><a href="{% url 'jobs:job_list' %}?category={{ job.category.slug }}">{{ job.category.name }}</a></li>
+            {% endif %}
+            <li class="breadcrumb-item active" aria-current="page">{{ job.title }}</li>
+        </ol>
+    </nav>
+
+    <div class="row g-4">
+        <!-- Main Job Content Column -->
+        <div class="col-lg-8">
+            <!-- Header Card -->
+            <div class="card p-4 mb-4 shadow-sm">
+                <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
+                    <div>
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <span class="badge badge-soft-primary fs-6">{{ job.job_type }}</span>
+                            <span class="badge badge-soft-secondary">{{ job.work_mode }}</span>
+                            <span class="badge badge-soft-info">{{ job.experience_level }}</span>
+                            {% if job.is_expired %}
+                                <span class="badge bg-danger">Expired</span>
+                            {% elif not job.is_active %}
+                                <span class="badge bg-secondary">Closed</span>
+                            {% else %}
+                                <span class="badge bg-success">Active</span>
+                            {% endif %}
+                        </div>
+                        <h2 class="fw-bold mb-1">{{ job.title }}</h2>
+                        <h5 class="text-primary fw-semibold mb-2">
+                            <a href="{% url 'companies:company_detail' slug=job.company.slug %}" class="text-decoration-none">
+                                <i class="bi bi-buildings me-1"></i> {{ job.company.name }}
+                            </a>
+                        </h5>
+                    </div>
+
+                    {% if user.is_authenticated and is_candidate %}
+                        <a href="{% url 'jobs:toggle_save_job' pk=job.pk %}" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+                            {% if is_saved %}
+                                <i class="bi bi-bookmark-fill text-danger me-1"></i> Saved to Wishlist
+                            {% else %}
+                                <i class="bi bi-bookmark me-1"></i> Save Job
+                            {% endif %}
+                        </a>
+                    {% endif %}
+                </div>
+
+                <!-- Meta Details Grid -->
+                <div class="row g-3 py-3 border-top border-bottom my-2 bg-light rounded-3 px-1">
+                    <div class="col-sm-6 col-md-3">
+                        <small class="text-muted d-block">Location</small>
+                        <span class="fw-semibold"><i class="bi bi-geo-alt text-primary me-1"></i>{{ job.location }}</span>
+                    </div>
+                    <div class="col-sm-6 col-md-3">
+                        <small class="text-muted d-block">Compensation</small>
+                        <span class="fw-semibold text-success"><i class="bi bi-cash-stack me-1"></i>{{ job.salary_display }}</span>
+                    </div>
+                    <div class="col-sm-6 col-md-3">
+                        <small class="text-muted d-block">Openings</small>
+                        <span class="fw-semibold"><i class="bi bi-people me-1"></i>{{ job.vacancies }} Position{{ job.vacancies|pluralize }}</span>
+                    </div>
+                    <div class="col-sm-6 col-md-3">
+                        <small class="text-muted d-block">Application Deadline</small>
+                        <span class="fw-semibold {% if job.is_expired %}text-danger{% else %}text-dark{% endif %}">
+                            <i class="bi bi-calendar-check me-1"></i>{{ job.deadline|date:"M d, Y" }}
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Recruiter Controls if this user posted the job -->
+                {% if user.is_authenticated and job.recruiter == user %}
+                    <div class="alert alert-info d-flex flex-wrap justify-content-between align-items-center gap-2 mt-3 mb-0">
+                        <div>
+                            <strong><i class="bi bi-shield-check me-1"></i> Recruiter Management:</strong> You posted this listing.
+                        </div>
+                        <div class="d-flex gap-2">
+                            <a href="{% url 'applications:recruiter_job_applicants' job_id=job.id %}" class="btn btn-primary btn-sm rounded-pill">
+                                <i class="bi bi-people me-1"></i> View Applicants ({{ job.applications.count }})
+                            </a>
+                            <a href="{% url 'applications:recruiter_pipeline' job_id=job.id %}" class="btn btn-outline-primary btn-sm rounded-pill">
+                                <i class="bi bi-kanban me-1"></i> Pipeline
+                            </a>
+                            <a href="{% url 'jobs:job_edit' pk=job.pk %}" class="btn btn-outline-secondary btn-sm rounded-pill">
+                                <i class="bi bi-pencil me-1"></i> Edit
+                            </a>
+                        </div>
+                    </div>
+                {% endif %}
+
+                <!-- Smart Skill Matching Card (For Candidates) -->
+                {% if user.is_authenticated and is_candidate and match_score is not None %}
+                    <div class="card bg-primary bg-opacity-10 border-primary border-opacity-25 p-3 mt-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="fw-bold text-primary">
+                                <i class="bi bi-lightning-charge-fill me-1"></i> Smart Skill Match Compatibility
+                            </span>
+                            <span class="badge {% if match_score >= 70 %}bg-success{% elif match_score >= 40 %}bg-warning text-dark{% else %}bg-secondary{% endif %} fs-6">
+                                {{ match_score }}% Match
+                            </span>
+                        </div>
+                        <div class="progress mb-2" style="height: 8px;">
+                            <div class="progress-bar {% if match_score >= 70 %}bg-success{% elif match_score >= 40 %}bg-warning{% else %}bg-secondary{% endif %}" 
+                                 role="progressbar" style="width: {{ match_score }}%;" aria-valuenow="{{ match_score }}" aria-valuemin="0" aria-valuemax="100">
+                            </div>
+                        </div>
+                        <div class="small">
+                            {% if matched_skills %}
+                                <div class="mb-1">
+                                    <strong class="text-success"><i class="bi bi-check2-circle me-1"></i>Skills you match:</strong>
+                                    {% for s in matched_skills %}
+                                        <span class="badge bg-success bg-opacity-75 text-white ms-1">{{ s.name }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            {% if missing_skills %}
+                                <div>
+                                    <strong class="text-muted"><i class="bi bi-info-circle me-1"></i>Additional skills requested:</strong>
+                                    {% for s in missing_skills %}
+                                        <span class="badge bg-light text-dark border ms-1">{{ s.name }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endif %}
+
+                <!-- Candidate Application Call to Action -->
+                <div class="mt-4 pt-3 border-top d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <div>
+                        <small class="text-muted">
+                            <i class="bi bi-eye me-1"></i> Viewed {{ job.views_count }} times • Posted {{ job.created_at|date:"M d, Y" }}
+                        </small>
+                    </div>
+
+                    <div>
+                        {% if user_application %}
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge {{ user_application.status_badge_class }} px-3 py-2 fs-6">
+                                    Status: {{ user_application.status }}
+                                </span>
+                                <a href="{% url 'applications:candidate_applications' %}" class="btn btn-outline-primary btn-sm rounded-pill">
+                                    Track Application
+                                </a>
+                            </div>
+                        {% elif not job.can_apply %}
+                            <button class="btn btn-secondary px-4 rounded-pill" disabled>
+                                Applications Closed
+                            </button>
+                        {% elif user.is_authenticated and is_candidate %}
+                            <a href="{% url 'applications:apply_job' job_id=job.id %}" class="btn btn-primary px-4 py-2 rounded-pill fw-semibold shadow-sm">
+                                <i class="bi bi-send-fill me-1"></i> Apply for this Position
+                            </a>
+                        {% elif not user.is_authenticated %}
+                            <a href="{% url 'accounts:login' %}?next={{ request.path }}" class="btn btn-primary px-4 py-2 rounded-pill fw-semibold shadow-sm">
+                                <i class="bi bi-box-arrow-in-right me-1"></i> Sign In to Apply
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Job Description & Role Details -->
+            <div class="card p-4 mb-4 shadow-sm">
+                <h4 class="fw-bold mb-3">About the Role</h4>
+                <div class="text-secondary mb-4" style="line-height: 1.8; white-space: pre-line;">{{ job.description }}</div>
+
+                {% if job.responsibilities %}
+                    <h5 class="fw-bold mb-2">Key Responsibilities</h5>
+                    <div class="text-secondary mb-4" style="line-height: 1.8; white-space: pre-line;">{{ job.responsibilities }}</div>
+                {% endif %}
+
+                {% if job.requirements %}
+                    <h5 class="fw-bold mb-2">Candidate Qualifications & Requirements</h5>
+                    <div class="text-secondary mb-4" style="line-height: 1.8; white-space: pre-line;">{{ job.requirements }}</div>
+                {% endif %}
+
+                <h5 class="fw-bold mb-2">Skills & Technologies Required</h5>
+                <div class="d-flex flex-wrap gap-2 mb-3">
+                    {% for skill in job.skills_required.all %}
+                        <span class="badge bg-light text-dark border px-3 py-2 fs-6">{{ skill.name }}</span>
+                    {% empty %}
+                        <span class="text-muted small">No specific skills listed.</span>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Report Job Button / Trigger -->
+            <div class="d-flex justify-content-end mb-4">
+                <button type="button" class="btn btn-link text-danger text-decoration-none small" data-bs-toggle="modal" data-bs-target="#reportModal">
+                    <i class="bi bi-flag me-1"></i> Report this job posting
+                </button>
+            </div>
+        </div>
+
+        <!-- Sidebar Column -->
+        <div class="col-lg-4">
+            <!-- Company Info Card -->
+            <div class="card p-4 shadow-sm mb-4">
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <div class="p-3 bg-light rounded-3 text-primary fs-3">
+                        <i class="bi bi-buildings"></i>
+                    </div>
+                    <div>
+                        <h5 class="fw-bold mb-0">
+                            <a href="{% url 'companies:company_detail' slug=job.company.slug %}" class="text-dark text-decoration-none">
+                                {{ job.company.name }}
+                            </a>
+                        </h5>
+                        <small class="text-muted">{{ job.company.industry }}</small>
+                    </div>
+                </div>
+
+                <p class="small text-secondary mb-3">
+                    {{ job.company.description|truncatewords:30 }}
+                </p>
+
+                <ul class="list-unstyled small mb-3 d-flex flex-column gap-2 border-top pt-3">
+                    <li><i class="bi bi-geo-alt text-muted me-2"></i> <strong>Location:</strong> {{ job.company.location }}</li>
+                    <li><i class="bi bi-people text-muted me-2"></i> <strong>Company Size:</strong> {{ job.company.get_company_size_display|default:job.company.company_size }}</li>
+                    {% if job.company.website %}
+                        <li>
+                            <i class="bi bi-globe text-muted me-2"></i> <strong>Website:</strong>
+                            <a href="{{ job.company.website }}" target="_blank" rel="noopener noreferrer" class="text-decoration-none">
+                                Visit website <i class="bi bi-box-arrow-up-right small"></i>
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+
+                <a href="{% url 'companies:company_detail' slug=job.company.slug %}" class="btn btn-outline-primary btn-sm rounded-pill w-100">
+                    View Company Profile & All Openings
+                </a>
+            </div>
+
+            <!-- Tips Card -->
+            <div class="card p-3 shadow-sm bg-light border-0">
+                <h6 class="fw-bold mb-2"><i class="bi bi-shield-check text-success me-1"></i> Safe Job Search Advice</h6>
+                <p class="small text-muted mb-0">
+                    CareerConnect never charges candidates any application fees. If an employer requests money or suspicious personal documentation, please report the listing immediately.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Report Job Modal -->
+<div class="modal fade" id="reportModal" tabindex="-1" aria-labelledby="reportModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form action="{% url 'jobs:report_job' pk=job.pk %}" method="post">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold" id="reportModalLabel"><i class="bi bi-flag text-danger me-1"></i> Report Job Posting</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="small text-muted">Help us keep CareerConnect safe. Tell us why you are reporting "{{ job.title }}":</p>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Reason for Report</label>
+                        {{ report_form.reason }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Additional Details</label>
+                        {{ report_form.details }}
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger">Submit Report</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

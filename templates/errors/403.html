@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block title %}403 Forbidden | CareerConnect{% endblock %}
+
+{% block content %}
+<div class="container py-5 text-center">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card p-5 shadow-sm border-0">
+                <i class="bi bi-shield-x text-danger display-1 mb-3"></i>
+                <h2 class="fw-bold mb-2">403 - Access Forbidden</h2>
+                <p class="text-secondary mb-4">
+                    You do not have the required permissions to view this resource. Resumes, job candidate details, and private dashboards are strictly role-protected.
+                </p>
+                <div>
+                    <a href="{% url 'jobs:job_list' %}" class="btn btn-primary px-4 rounded-pill">Back to Job Listings</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

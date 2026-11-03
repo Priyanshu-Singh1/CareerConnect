@@ -1,0 +1,47 @@
+<div class="kanban-card">
+    <div class="d-flex justify-content-between align-items-start mb-2">
+        <h6 class="fw-bold mb-0">
+            {{ app.candidate.get_full_name|default:app.candidate.username }}
+        </h6>
+        <span class="badge {% if app.calculated_match_score >= 70 %}bg-success{% elif app.calculated_match_score >= 40 %}bg-warning text-dark{% else %}bg-secondary{% endif %}" style="font-size: 0.7rem;">
+            {{ app.calculated_match_score }}% match
+        </span>
+    </div>
+
+    <p class="small text-muted mb-2" style="font-size: 0.78rem;">
+        {{ app.candidate.candidate_profile.headline|default:"Candidate"|truncatechars:38 }}
+    </p>
+
+    <div class="d-flex justify-content-between align-items-center mb-2" style="font-size: 0.75rem;">
+        <span class="text-muted"><i class="bi bi-calendar"></i> {{ app.applied_at|date:"M d" }}</span>
+        <a href="{% url 'accounts:download_resume' user_id=app.candidate.id %}" target="_blank" class="text-decoration-none">
+            <i class="bi bi-file-earmark-pdf text-danger"></i> Resume
+        </a>
+    </div>
+
+    {% if app.interview %}
+        <div class="p-1 mb-2 bg-warning bg-opacity-10 rounded border border-warning small text-center" style="font-size: 0.75rem;">
+            <a href="{% url 'applications:interview_detail' interview_id=app.interview.id %}" class="text-decoration-none text-dark fw-semibold">
+                <i class="bi bi-camera-video me-1"></i> {{ app.interview.scheduled_date|date:"M d" }} @ {{ app.interview.scheduled_time|time:"H:i" }}
+            </a>
+        </div>
+    {% endif %}
+
+    <!-- Move Stage Form -->
+    <form action="{% url 'applications:update_status' application_id=app.id %}" method="post" class="mt-2 pt-2 border-top">
+        {% csrf_token %}
+        <div class="input-group input-group-sm">
+            <select name="status" class="form-select form-select-sm" style="font-size: 0.75rem;">
+                <option value="Applied" {% if app.status == 'Applied' %}selected{% endif %}>Applied</option>
+                <option value="Under Review" {% if app.status == 'Under Review' %}selected{% endif %}>Under Review</option>
+                <option value="Shortlisted" {% if app.status == 'Shortlisted' %}selected{% endif %}>Shortlisted</option>
+                <option value="Interview Scheduled" {% if app.status == 'Interview Scheduled' %}selected{% endif %}>Interview</option>
+                <option value="Selected" {% if app.status == 'Selected' %}selected{% endif %}>Selected</option>
+                <option value="Rejected" {% if app.status == 'Rejected' %}selected{% endif %}>Rejected</option>
+            </select>
+            <button class="btn btn-outline-secondary btn-sm" type="submit" title="Move Stage">
+                <i class="bi bi-arrow-right"></i>
+            </button>
+        </div>
+    </form>
+</div>

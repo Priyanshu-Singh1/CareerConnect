@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ action_title }} | CareerConnect{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card p-4 shadow-sm border-0">
+                <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+                    <div>
+                        <h3 class="fw-bold mb-1">{{ action_title }}</h3>
+                        <p class="text-muted small mb-0">Fill in accurate details to attract qualified candidates.</p>
+                    </div>
+                    <a href="{% url 'accounts:recruiter_dashboard' %}" class="btn btn-outline-secondary btn-sm rounded-pill">
+                        <i class="bi bi-arrow-left me-1"></i> Back to Dashboard
+                    </a>
+                </div>
+
+                <form method="post" novalidate>
+                    {% csrf_token %}
+
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {% for error in form.non_field_errors %}
+                                <div>{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <!-- Basic Job Info -->
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-8">
+                            <label class="form-label fw-semibold">Job Title <span class="text-danger">*</span></label>
+                            {{ form.title }}
+                            {% if form.title.errors %}<div class="text-danger small mt-1">{{ form.title.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Category</label>
+                            {{ form.category }}
+                            {% if form.category.errors %}<div class="text-danger small mt-1">{{ form.category.errors.0 }}</div>{% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Job Classification -->
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Job Type <span class="text-danger">*</span></label>
+                            {{ form.job_type }}
+                            {% if form.job_type.errors %}<div class="text-danger small mt-1">{{ form.job_type.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Work Mode <span class="text-danger">*</span></label>
+                            {{ form.work_mode }}
+                            {% if form.work_mode.errors %}<div class="text-danger small mt-1">{{ form.work_mode.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Experience Level <span class="text-danger">*</span></label>
+                            {{ form.experience_level }}
+                            {% if form.experience_level.errors %}<div class="text-danger small mt-1">{{ form.experience_level.errors.0 }}</div>{% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Location & Vacancies -->
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-8">
+                            <label class="form-label fw-semibold">Location <span class="text-danger">*</span></label>
+                            {{ form.location }}
+                            <small class="text-muted">e.g., Bengaluru, Karnataka or 'Remote'</small>
+                            {% if form.location.errors %}<div class="text-danger small mt-1">{{ form.location.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Open Vacancies</label>
+                            {{ form.vacancies }}
+                            {% if form.vacancies.errors %}<div class="text-danger small mt-1">{{ form.vacancies.errors.0 }}</div>{% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Compensation & Deadline -->
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Minimum Salary (₹/yr)</label>
+                            {{ form.salary_min }}
+                            {% if form.salary_min.errors %}<div class="text-danger small mt-1">{{ form.salary_min.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Maximum Salary (₹/yr)</label>
+                            {{ form.salary_max }}
+                            {% if form.salary_max.errors %}<div class="text-danger small mt-1">{{ form.salary_max.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Application Deadline <span class="text-danger">*</span></label>
+                            {{ form.deadline }}
+                            {% if form.deadline.errors %}<div class="text-danger small mt-1">{{ form.deadline.errors.0 }}</div>{% endif %}
+                        </div>
+                    </div>
+
+                    <div class="form-check mb-4">
+                        {{ form.salary_negotiable }}
+                        <label class="form-check-label fw-medium" for="{{ form.salary_negotiable.id_for_label }}">
+                            Salary is negotiable or undisclosed
+                        </label>
+                    </div>
+
+                    <!-- Required Skills -->
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">Required Skills (Hold Ctrl/Cmd to select multiple)</label>
+                        {{ form.skills_required }}
+                        <small class="text-muted d-block mt-1">Select all core technical and domain skills required for this position.</small>
+                        {% if form.skills_required.errors %}<div class="text-danger small mt-1">{{ form.skills_required.errors.0 }}</div>{% endif %}
+                    </div>
+
+                    <!-- Detailed Descriptions -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Job Description <span class="text-danger">*</span></label>
+                        {{ form.description }}
+                        {% if form.description.errors %}<div class="text-danger small mt-1">{{ form.description.errors.0 }}</div>{% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Key Responsibilities</label>
+                        {{ form.responsibilities }}
+                        {% if form.responsibilities.errors %}<div class="text-danger small mt-1">{{ form.responsibilities.errors.0 }}</div>{% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Candidate Requirements</label>
+                        {{ form.requirements }}
+                        {% if form.requirements.errors %}<div class="text-danger small mt-1">{{ form.requirements.errors.0 }}</div>{% endif %}
+                    </div>
+
+                    <div class="form-check mb-4">
+                        {{ form.is_active }}
+                        <label class="form-check-label fw-semibold" for="{{ form.is_active.id_for_label }}">
+                            Job listing is active and published immediately
+                        </label>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 border-top pt-3">
+                        <a href="{% url 'accounts:recruiter_dashboard' %}" class="btn btn-light px-4 rounded-pill">Cancel</a>
+                        <button type="submit" class="btn btn-primary px-5 py-2 rounded-pill fw-semibold shadow-sm">
+                            {{ button_text }}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

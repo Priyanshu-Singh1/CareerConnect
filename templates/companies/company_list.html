@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+
+{% block title %}Company Directory & Live Openings | CareerConnect{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Header Banner -->
+    <div class="card p-4 mb-4 shadow-sm border-0 bg-white">
+        <div class="row align-items-center g-3">
+            <div class="col-lg-6">
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    <h3 class="fw-bold mb-0">Company Directory</h3>
+                    <span class="badge bg-primary bg-opacity-10 text-primary small">
+                        <i class="bi bi-cloud-check-fill me-1"></i> Live API Enabled
+                    </span>
+                </div>
+                <p class="text-muted small mb-0">Search any company to automatically discover their profile & live job openings</p>
+            </div>
+            <div class="col-lg-6">
+                <form method="get" class="d-flex gap-2">
+                    <input type="text" name="q" value="{{ query }}" class="form-control" placeholder="Search any company (e.g. Google, Amazon, TCS)...">
+                    <button type="submit" class="btn btn-primary px-4 fw-semibold">
+                        <i class="bi bi-search me-1"></i> Search
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Quick API Fetch Chips -->
+        <div class="d-flex flex-wrap align-items-center gap-2 mt-3 pt-3 border-top">
+            <span class="small text-muted fw-semibold"><i class="bi bi-lightning-charge text-warning me-1"></i>Fetch Openings via API:</span>
+            {% for comp in popular_companies %}
+                <a href="{% url 'companies:company_list' %}?q={{ comp }}" class="badge {% if query|lower == comp|lower %}bg-primary text-white{% else %}bg-light text-dark border{% endif %} text-decoration-none px-3 py-2 rounded-pill">
+                    {{ comp }}
+                </a>
+            {% endfor %}
+            <a href="{% url 'companies:fetch_api' %}" class="small text-primary fw-semibold ms-auto text-decoration-none">
+                <i class="bi bi-gear-wide-connected me-1"></i> Dedicated API Tool &rarr;
+            </a>
+        </div>
+    </div>
+
+    <!-- Feedback when auto-fetched -->
+    {% if auto_fetched %}
+        <div class="alert alert-success d-flex align-items-center justify-content-between shadow-sm mb-4">
+            <div>
+                <i class="bi bi-check2-circle fs-5 me-2"></i>
+                Live openings for <strong>"{{ query }}"</strong> were fetched and synchronized into CareerConnect database via Company Openings API!
+            </div>
+            <a href="{% url 'jobs:job_list' %}?q={{ query }}" class="btn btn-success btn-sm rounded-pill px-3">
+                View Openings & Apply
+            </a>
+        </div>
+    {% endif %}
+
+    <!-- Company Grid -->
+    <div class="row g-4">
+        {% for company in page_obj %}
+            <div class="col-lg-4 col-md-6">
+                <div class="card h-100 p-4 shadow-sm d-flex flex-column justify-content-between">
+                    <div>
+                        <div class="d-flex align-items-center gap-3 mb-3">
+                            {% if company.logo %}
+                                <img src="{{ company.logo.url }}" alt="{{ company.name }}" class="rounded border p-1" style="width: 55px; height: 55px; object-fit: contain;">
+                            {% else %}
+                                <div class="rounded bg-light text-primary d-inline-flex align-items-center justify-content-center border" style="width: 55px; height: 55px; font-size: 1.5rem;">
+                                    <i class="bi bi-buildings"></i>
+                                </div>
+                            {% endif %}
+                            <div>
+                                <h5 class="fw-bold mb-0">
+                                    <a href="{% url 'companies:company_detail' slug=company.slug %}" class="text-dark text-decoration-none">
+                                        {{ company.name }}
+                                    </a>
+                                </h5>
+                                <span class="badge badge-soft-primary small">{{ company.industry }}</span>
+                            </div>
+                        </div>
+
+                        <p class="small text-secondary mb-3">
+                            {{ company.description|truncatewords:20 }}
+                        </p>
+
+                        <div class="small text-muted mb-3">
+                            <div><i class="bi bi-geo-alt me-1"></i> {{ company.location }}</div>
+                            <div><i class="bi bi-people me-1"></i> {{ company.get_company_size_display|default:company.company_size }}</div>
+                        </div>
+                    </div>
+
+                    <div class="border-top pt-3 d-flex justify-content-between align-items-center">
+                        <span class="badge bg-light text-primary border fw-semibold">
+                            {{ company.active_jobs_total }} Active Job{{ company.active_jobs_total|pluralize }}
+                        </span>
+                        <a href="{% url 'companies:company_detail' slug=company.slug %}" class="btn btn-outline-primary btn-sm rounded-pill px-3">
+                            View & Apply &rarr;
+                        </a>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="col-12">
+                <div class="card p-5 text-center text-muted">
+                    <i class="bi bi-buildings fs-1 mb-3 text-secondary"></i>
+                    <h5>No companies found</h5>
+                    <p class="small">Try searching another company name or use the Company Openings API.</p>
+                    <div class="mt-2">
+                        <a href="{% url 'companies:fetch_api' %}" class="btn btn-primary btn-sm rounded-pill px-4">
+                            <i class="bi bi-lightning-charge me-1"></i> Fetch via Company API
+                        </a>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+        <nav class="mt-4" aria-label="Company pagination">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}">&laquo; Previous</a></li>
+                {% endif %}
+                <li class="page-item active"><span class="page-link">{{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span></li>
+                {% if page_obj.has_next %}
+                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}">Next &raquo;</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,271 @@
+{% extends 'base.html' %}
+
+{% block title %}Browse Jobs & Internships | CareerConnect{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Header & Search Bar -->
+    <div class="card p-3 mb-4 shadow-sm border-0 bg-primary text-white" style="border-radius: 12px;">
+        <div class="row align-items-center g-3">
+            <div class="col-lg-6">
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    <h3 class="fw-bold mb-0">Discover Opportunities</h3>
+                    <span class="badge bg-white text-primary small">
+                        <i class="bi bi-cloud-check-fill me-1"></i> Live API Integrated
+                    </span>
+                </div>
+                <p class="small mb-0 opacity-75">Browse {{ results_count }} active jobs, internships, or search any company</p>
+            </div>
+            <div class="col-lg-6">
+                <form method="get" class="d-flex gap-2">
+                    <input type="text" name="q" value="{{ current_q }}" class="form-control" placeholder="Search by title, skill, or company (e.g. Google)...">
+                    {% if current_category %}<input type="hidden" name="category" value="{{ current_category }}">{% endif %}
+                    {% if current_job_type %}<input type="hidden" name="job_type" value="{{ current_job_type }}">{% endif %}
+                    {% if current_work_mode %}<input type="hidden" name="work_mode" value="{{ current_work_mode }}">{% endif %}
+                    {% if current_experience %}<input type="hidden" name="experience" value="{{ current_experience }}">{% endif %}
+                    <button type="submit" class="btn btn-dark px-4 fw-semibold">Search</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Quick Company Filter Chips -->
+        <div class="d-flex flex-wrap align-items-center gap-2 mt-3 pt-3 border-top border-white border-opacity-25 small">
+            <span class="opacity-75">Fetch by Company:</span>
+            {% for comp in popular_companies %}
+                <a href="{% url 'jobs:job_list' %}?q={{ comp }}" class="badge {% if current_q|lower == comp|lower %}bg-white text-primary fw-bold{% else %}bg-white bg-opacity-25 text-white{% endif %} text-decoration-none px-2 py-1 rounded-pill">
+                    {{ comp }}
+                </a>
+            {% endfor %}
+            <a href="{% url 'companies:fetch_api' %}" class="badge bg-warning text-dark text-decoration-none px-2 py-1 rounded-pill ms-auto">
+                <i class="bi bi-gear-wide-connected me-1"></i> Company API Tool
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Filter Sidebar -->
+        <div class="col-lg-3 col-md-4">
+            <div class="card p-3 shadow-sm sticky-top" style="top: 80px; z-index: 10;">
+                <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                    <h6 class="fw-bold mb-0"><i class="bi bi-funnel me-1 text-primary"></i> Filter Results</h6>
+                    {% if current_q or current_category or current_job_type or current_work_mode or current_experience or current_location %}
+                        <a href="{% url 'jobs:job_list' %}" class="small text-danger text-decoration-none">Reset All</a>
+                    {% endif %}
+                </div>
+
+                <form method="get" id="filterForm">
+                    {% if current_q %}<input type="hidden" name="q" value="{{ current_q }}">{% endif %}
+
+                    <!-- Job Type Filter -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small text-muted text-uppercase">Opportunity Type</label>
+                        <select name="job_type" class="form-select form-select-sm" onchange="this.form.submit()">
+                            <option value="">All Types</option>
+                            {% for jt in job_types %}
+                                <option value="{{ jt }}" {% if current_job_type == jt %}selected{% endif %}>{{ jt }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Work Mode Filter -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small text-muted text-uppercase">Work Mode</label>
+                        <select name="work_mode" class="form-select form-select-sm" onchange="this.form.submit()">
+                            <option value="">All Work Modes</option>
+                            {% for wm in work_modes %}
+                                <option value="{{ wm }}" {% if current_work_mode == wm %}selected{% endif %}>{{ wm }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Experience Level -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small text-muted text-uppercase">Experience Level</label>
+                        <select name="experience" class="form-select form-select-sm" onchange="this.form.submit()">
+                            <option value="">All Levels</option>
+                            {% for exp in experiences %}
+                                <option value="{{ exp }}" {% if current_experience == exp %}selected{% endif %}>{{ exp }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Category Filter -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small text-muted text-uppercase">Category</label>
+                        <select name="category" class="form-select form-select-sm" onchange="this.form.submit()">
+                            <option value="">All Categories</option>
+                            {% for cat in categories %}
+                                <option value="{{ cat.slug }}" {% if current_category == cat.slug %}selected{% endif %}>{{ cat.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Location Input -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small text-muted text-uppercase">Location</label>
+                        <div class="input-group input-group-sm">
+                            <input type="text" name="location" value="{{ current_location }}" class="form-control" placeholder="City or Country">
+                            <button class="btn btn-outline-secondary" type="submit"><i class="bi bi-search"></i></button>
+                        </div>
+                    </div>
+
+                    <!-- Sort By -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small text-muted text-uppercase">Sort By</label>
+                        <select name="sort" class="form-select form-select-sm" onchange="this.form.submit()">
+                            <option value="newest" {% if current_sort == 'newest' %}selected{% endif %}>Newest First</option>
+                            <option value="deadline" {% if current_sort == 'deadline' %}selected{% endif %}>Approaching Deadline</option>
+                            <option value="salary_high" {% if current_sort == 'salary_high' %}selected{% endif %}>Highest Salary</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Job Listings Column -->
+        <div class="col-lg-9 col-md-8">
+            <!-- Active filter chips -->
+            {% if current_q or current_category or current_job_type or current_work_mode or current_experience or current_location %}
+                <div class="d-flex flex-wrap gap-2 align-items-center mb-3">
+                    <span class="small text-muted">Active filters:</span>
+                    {% if current_q %}<span class="badge bg-light text-dark border">Keyword: {{ current_q }}</span>{% endif %}
+                    {% if current_job_type %}<span class="badge bg-light text-dark border">Type: {{ current_job_type }}</span>{% endif %}
+                    {% if current_work_mode %}<span class="badge bg-light text-dark border">Mode: {{ current_work_mode }}</span>{% endif %}
+                    {% if current_experience %}<span class="badge bg-light text-dark border">Level: {{ current_experience }}</span>{% endif %}
+                    {% if current_location %}<span class="badge bg-light text-dark border">Location: {{ current_location }}</span>{% endif %}
+                    {% if current_category %}<span class="badge bg-light text-dark border">Category: {{ current_category }}</span>{% endif %}
+                </div>
+            {% endif %}
+
+            <!-- List of Jobs -->
+            <div class="d-flex flex-column gap-3">
+                {% for job in page_obj %}
+                    <div class="card job-card p-3">
+                        <div class="row g-3">
+                            <div class="col-md-9">
+                                <div class="d-flex align-items-center gap-2 mb-2">
+                                    <span class="badge badge-soft-primary">{{ job.job_type }}</span>
+                                    <span class="badge badge-soft-secondary">{{ job.work_mode }}</span>
+                                    <span class="badge badge-soft-info">{{ job.experience_level }}</span>
+                                    {% if job.category %}
+                                        <span class="badge bg-light text-muted border">{{ job.category.name }}</span>
+                                    {% endif %}
+                                </div>
+
+                                <h5 class="fw-bold mb-1">
+                                    <a href="{% url 'jobs:job_detail' pk=job.pk slug=job.slug %}" class="text-dark text-decoration-none">
+                                        {{ job.title }}
+                                    </a>
+                                </h5>
+
+                                <p class="text-muted small mb-2 d-flex flex-wrap align-items-center gap-2">
+                                    <span class="fw-semibold text-primary">
+                                        <i class="bi bi-buildings"></i>
+                                        <a href="{% url 'companies:company_detail' slug=job.company.slug %}" class="text-primary text-decoration-none">
+                                            {{ job.company.name }}
+                                        </a>
+                                    </span>
+                                    <span>•</span>
+                                    <span><i class="bi bi-geo-alt"></i> {{ job.location }}</span>
+                                    <span>•</span>
+                                    <span><i class="bi bi-cash-stack text-success"></i> <strong>{{ job.salary_display }}</strong></span>
+                                </p>
+
+                                <p class="text-secondary small mb-3">
+                                    {{ job.description|truncatewords:24 }}
+                                </p>
+
+                                <div class="d-flex flex-wrap gap-1">
+                                    {% for skill in job.skills_required.all %}
+                                        <span class="badge bg-light text-dark border small">{{ skill.name }}</span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+
+                            <div class="col-md-3 d-flex flex-column justify-content-between text-md-end border-start-md">
+                                <div>
+                                    <span class="text-muted small d-block mb-1">
+                                        <i class="bi bi-clock me-1"></i> Posted {{ job.created_at|timesince }} ago
+                                    </span>
+                                    <span class="small text-danger fw-semibold d-block">
+                                        <i class="bi bi-calendar-event me-1"></i> Deadline: {{ job.deadline|date:"M d, Y" }}
+                                    </span>
+                                </div>
+
+                                <div class="mt-3 d-flex flex-column gap-2">
+                                    <a href="{% url 'jobs:job_detail' pk=job.pk slug=job.slug %}" class="btn btn-primary btn-sm rounded-pill w-100">
+                                        View Details
+                                    </a>
+                                    {% if user.is_authenticated and is_candidate %}
+                                        <a href="{% url 'jobs:toggle_save_job' pk=job.pk %}" class="btn btn-outline-secondary btn-sm rounded-pill w-100">
+                                            <i class="bi bi-bookmark"></i> Wishlist
+                                        </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="card p-5 text-center text-muted">
+                        <i class="bi bi-search fs-1 mb-3 text-secondary"></i>
+                        <h5>No matching opportunities found</h5>
+                        {% if current_q %}
+                            <p class="small text-secondary mb-3">
+                                Couldn't find local openings matching "<strong>{{ current_q }}</strong>"? You can query the Company Openings API to fetch live openings.
+                            </p>
+                            <div class="d-flex justify-content-center gap-2 flex-wrap">
+                                <a href="{% url 'jobs:job_list' %}?q={{ current_q }}&fetch=1" class="btn btn-primary btn-sm rounded-pill px-4 shadow-sm">
+                                    <i class="bi bi-cloud-arrow-down-fill me-1"></i> Fetch "{{ current_q }}" Openings via API
+                                </a>
+                                <a href="{% url 'jobs:job_list' %}" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+                                    Reset Filters
+                                </a>
+                            </div>
+                        {% else %}
+                            <p class="small">Try adjusting your search criteria, clear your filters, or check back later.</p>
+                            <div class="mt-2">
+                                <a href="{% url 'jobs:job_list' %}" class="btn btn-outline-primary btn-sm rounded-pill">Reset All Filters</a>
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+
+            <!-- Pagination -->
+            {% if page_obj.has_other_pages %}
+                <nav class="mt-4" aria-label="Job pagination">
+                    <ul class="pagination justify-content-center">
+                        {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}&{{ pagination_query }}" aria-label="Previous">
+                                    <span aria-hidden="true">&laquo; Previous</span>
+                                </a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled"><span class="page-link">&laquo; Previous</span></li>
+                        {% endif %}
+
+                        {% for num in page_obj.paginator.page_range %}
+                            {% if page_obj.number == num %}
+                                <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                <li class="page-item"><a class="page-link" href="?page={{ num }}&{{ pagination_query }}">{{ num }}</a></li>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}&{{ pagination_query }}" aria-label="Next">
+                                    <span aria-hidden="true">Next &raquo;</span>
+                                </a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled"><span class="page-link">Next &raquo;</span></li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

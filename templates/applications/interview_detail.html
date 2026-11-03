@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+
+{% block title %}Interview Schedule: {{ application.job.title }} | CareerConnect{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card p-4 shadow-sm border-0">
+                <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom flex-wrap gap-2">
+                    <div>
+                        <span class="badge bg-warning text-dark mb-1"><i class="bi bi-calendar-event me-1"></i> Interview Confirmed</span>
+                        <h3 class="fw-bold mb-0">{{ application.job.title }}</h3>
+                        <p class="text-muted small mb-0">{{ application.job.company.name }}</p>
+                    </div>
+                    {% if is_recruiter %}
+                        <a href="{% url 'applications:schedule_interview' application_id=application.id %}" class="btn btn-outline-secondary btn-sm rounded-pill">
+                            <i class="bi bi-pencil me-1"></i> Reschedule
+                        </a>
+                    {% endif %}
+                </div>
+
+                <!-- Schedule Card Highlight -->
+                <div class="p-4 bg-primary bg-opacity-10 rounded-3 mb-4 border border-primary border-opacity-25">
+                    <div class="row g-3 text-center">
+                        <div class="col-md-4 border-end-md">
+                            <span class="text-muted small d-block">Scheduled Date</span>
+                            <h5 class="fw-bold text-primary mb-0"><i class="bi bi-calendar3 me-1"></i>{{ interview.scheduled_date|date:"l, M d, Y" }}</h5>
+                        </div>
+                        <div class="col-md-4 border-end-md">
+                            <span class="text-muted small d-block">Scheduled Time</span>
+                            <h5 class="fw-bold text-primary mb-0"><i class="bi bi-clock me-1"></i>{{ interview.scheduled_time|time:"h:i A" }}</h5>
+                        </div>
+                        <div class="col-md-4">
+                            <span class="text-muted small d-block">Interview Format</span>
+                            <h5 class="fw-bold text-primary mb-0"><i class="bi bi-camera-video me-1"></i>{{ interview.mode }}</h5>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Meeting Location / Link -->
+                <div class="card p-3 bg-light border-0 mb-4">
+                    <h6 class="fw-bold mb-2"><i class="bi bi-link-45deg text-primary me-1"></i> Meeting Link / Location Details</h6>
+                    {% if "http" in interview.location_or_link %}
+                        <a href="{{ interview.location_or_link }}" target="_blank" rel="noopener noreferrer" class="btn btn-success d-inline-flex align-items-center gap-2 px-4 py-2 rounded-pill fw-semibold shadow-sm align-self-start">
+                            <i class="bi bi-box-arrow-up-right"></i> Join Online Interview Meeting
+                        </a>
+                        <div class="small text-muted mt-2">{{ interview.location_or_link }}</div>
+                    {% else %}
+                        <p class="fw-semibold mb-0"><i class="bi bi-geo-alt-fill text-danger me-1"></i> {{ interview.location_or_link }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Instructions -->
+                {% if interview.instructions %}
+                    <div class="card p-3 border mb-4">
+                        <h6 class="fw-bold mb-2"><i class="bi bi-info-circle text-info me-1"></i> Preparation Instructions</h6>
+                        <div class="text-secondary small" style="white-space: pre-line; line-height: 1.7;">{{ interview.instructions }}</div>
+                    </div>
+                {% endif %}
+
+                <!-- Participants Info -->
+                <div class="row g-3 small border-top pt-3">
+                    <div class="col-md-6">
+                        <span class="text-muted d-block">Candidate:</span>
+                        <strong>{{ application.candidate.get_full_name|default:application.candidate.username }}</strong> ({{ application.candidate.email }})
+                    </div>
+                    <div class="col-md-6 text-md-end">
+                        <span class="text-muted d-block">Recruiter:</span>
+                        <strong>{{ application.job.recruiter.get_full_name|default:application.job.recruiter.username }}</strong> ({{ application.job.company.name }})
+                    </div>
+                </div>
+
+                <div class="mt-4 pt-2 text-center">
+                    {% if is_recruiter %}
+                        <a href="{% url 'applications:recruiter_pipeline' job_id=application.job.id %}" class="btn btn-outline-primary px-4 rounded-pill">
+                            Back to Pipeline
+                        </a>
+                    {% else %}
+                        <a href="{% url 'applications:candidate_applications' %}" class="btn btn-outline-primary px-4 rounded-pill">
+                            Back to Applications
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

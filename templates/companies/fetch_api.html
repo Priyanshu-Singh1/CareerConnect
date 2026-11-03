@@ -1,0 +1,169 @@
+{% extends 'base.html' %}
+
+{% block title %}Fetch Company Openings via API | CareerConnect{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Header Banner -->
+    <div class="card p-4 mb-4 shadow-sm border-0 bg-primary text-white position-relative overflow-hidden" style="border-radius: 14px;">
+        <div class="row align-items-center g-3">
+            <div class="col-lg-8">
+                <span class="badge bg-white text-primary px-3 py-1 rounded-pill mb-2 fw-semibold">
+                    <i class="bi bi-cloud-arrow-down-fill me-1"></i> Live Company Openings API
+                </span>
+                <h2 class="fw-bold mb-1">Explore Openings for Any Company</h2>
+                <p class="mb-0 opacity-75 small">
+                    Search for any organization worldwide. Our API discovers company metadata, active job & internship listings, and imports them directly into CareerConnect so you can review details and apply instantly.
+                </p>
+            </div>
+            <div class="col-lg-4 text-lg-end">
+                <a href="{% url 'companies:company_list' %}" class="btn btn-outline-light rounded-pill px-4 fw-semibold shadow-sm">
+                    <i class="bi bi-buildings me-1"></i> View Directory
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search Box Card -->
+    <div class="card p-4 shadow-sm border-0 mb-4 bg-white">
+        <h5 class="fw-bold mb-3"><i class="bi bi-search text-primary me-2"></i>Search Any Company Name</h5>
+        <form method="get" action="{% url 'companies:fetch_api' %}" class="row g-2 align-items-center">
+            <div class="col-md-9">
+                <div class="input-group">
+                    <span class="input-group-text bg-light text-muted border-end-0"><i class="bi bi-buildings"></i></span>
+                    <input type="text" name="company" value="{{ searched_company }}" class="form-control border-start-0 py-2" placeholder="e.g. Google, Microsoft, Amazon, Meta, Netflix, TCS, Infosys, Zomato, Swiggy, Apple..." required autofocus>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-primary w-100 py-2 rounded-3 fw-semibold shadow-sm">
+                    <i class="bi bi-lightning-charge-fill me-1"></i> Fetch Openings
+                </button>
+            </div>
+        </form>
+
+        <!-- Quick Suggestions Chips -->
+        <div class="d-flex flex-wrap align-items-center gap-2 mt-3 pt-2 border-top">
+            <span class="small text-muted fw-semibold">Quick Fetch:</span>
+            {% for comp in popular_companies %}
+                <a href="{% url 'companies:fetch_api' %}?company={{ comp }}" class="badge bg-light text-dark border text-decoration-none px-3 py-2 rounded-pill hover-shadow">
+                    {{ comp }}
+                </a>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Results Section -->
+    {% if result %}
+        <div class="mb-4">
+            <!-- Company Profile Header -->
+            <div class="card p-4 shadow-sm border-0 mb-4 bg-light">
+                <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="rounded-3 bg-white text-primary p-3 border shadow-sm fs-2">
+                            <i class="bi bi-buildings"></i>
+                        </div>
+                        <div>
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <h3 class="fw-bold mb-0">{{ result.company.name }}</h3>
+                                <span class="badge bg-success bg-opacity-25 text-success rounded-pill px-2 py-1 small">
+                                    <i class="bi bi-patch-check-fill me-1"></i> Verified Partner
+                                </span>
+                            </div>
+                            <p class="text-muted small mb-0">
+                                <span class="badge badge-soft-primary me-2">{{ result.company.industry }}</span>
+                                <i class="bi bi-geo-alt me-1"></i> {{ result.company.location }}
+                                <span class="mx-2">•</span>
+                                <i class="bi bi-people me-1"></i> {{ result.company.get_company_size_display|default:result.company.company_size }}
+                            </p>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2">
+                        {% if result.company.website %}
+                            <a href="{{ result.company.website }}" target="_blank" rel="noopener noreferrer" class="btn btn-outline-primary btn-sm rounded-pill px-3">
+                                <i class="bi bi-globe me-1"></i> Website
+                            </a>
+                        {% endif %}
+                        <a href="{% url 'companies:company_detail' slug=result.company.slug %}" class="btn btn-primary btn-sm rounded-pill px-3">
+                            Company Page &rarr;
+                        </a>
+                    </div>
+                </div>
+                <div class="mt-3 pt-3 border-top text-secondary small">
+                    {{ result.company.description }}
+                </div>
+            </div>
+
+            <!-- Job Openings Grid -->
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 class="fw-bold mb-0">Available Openings at {{ result.company.name }} ({{ result.count }})</h4>
+                <span class="badge bg-success fs-6">Ready to Apply</span>
+            </div>
+
+            <div class="row g-3">
+                {% for job in result.jobs %}
+                    <div class="col-lg-6">
+                        <div class="card job-card h-100 p-4 shadow-sm border d-flex flex-column justify-content-between">
+                            <div>
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <div class="d-flex gap-1 flex-wrap">
+                                        <span class="badge badge-soft-primary">{{ job.job_type }}</span>
+                                        <span class="badge badge-soft-secondary">{{ job.work_mode }}</span>
+                                        <span class="badge badge-soft-info">{{ job.experience_level }}</span>
+                                    </div>
+                                    <span class="text-muted small"><i class="bi bi-clock me-1"></i>{{ job.created_at|timesince }} ago</span>
+                                </div>
+
+                                <h5 class="fw-bold mb-1">
+                                    <a href="{% url 'jobs:job_detail' pk=job.pk slug=job.slug %}" class="text-dark text-decoration-none">
+                                        {{ job.title }}
+                                    </a>
+                                </h5>
+
+                                <p class="text-muted small mb-2">
+                                    <i class="bi bi-geo-alt"></i> {{ job.location }} • <strong class="text-success"><i class="bi bi-cash-stack"></i> {{ job.salary_display }}</strong>
+                                </p>
+
+                                <p class="small text-secondary mb-3">
+                                    {{ job.description|truncatewords:20 }}
+                                </p>
+
+                                <div class="d-flex flex-wrap gap-1 mb-3">
+                                    {% for skill in job.skills_required.all %}
+                                        <span class="badge bg-light text-dark border small">{{ skill.name }}</span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+
+                            <div class="pt-3 border-top d-flex justify-content-between align-items-center">
+                                <small class="text-danger fw-semibold">
+                                    <i class="bi bi-calendar-event me-1"></i> Deadline: {{ job.deadline|date:"M d, Y" }}
+                                </small>
+                                <div class="d-flex gap-2">
+                                    <a href="{% url 'jobs:job_detail' pk=job.pk slug=job.slug %}" class="btn btn-outline-primary btn-sm rounded-pill px-3">
+                                        Details
+                                    </a>
+                                    {% if user.is_authenticated and is_candidate %}
+                                        <a href="{% url 'applications:apply_job' job_id=job.id %}" class="btn btn-primary btn-sm rounded-pill px-3 fw-semibold shadow-sm">
+                                            Apply Now
+                                        </a>
+                                    {% else %}
+                                        <a href="{% url 'jobs:job_detail' pk=job.pk slug=job.slug %}" class="btn btn-primary btn-sm rounded-pill px-3 fw-semibold">
+                                            Apply
+                                        </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% elif searched_company %}
+        <div class="card p-5 text-center text-muted">
+            <i class="bi bi-exclamation-circle fs-1 mb-3 text-secondary"></i>
+            <h5>No openings retrieved</h5>
+            <p class="small">Try checking the spelling or click one of the suggested companies above.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
